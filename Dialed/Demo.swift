@@ -19,8 +19,10 @@ enum Demo {
             for n in 0..<done {
                 guard let p = problems.next() else { break }
                 let date = cal.date(byAdding: .hour, value: 10 + n * 13, to: start)!
-                context.insert(Entry(date: date, difficulty: p.difficulty,
-                                     topic: NeetCode.topic(of: p.slug), neetcode: p.slug))
+                // Two in three are timed, using 45-100% of the limit.
+                let taken = n % 3 == 2 ? nil : p.difficulty.minutes * 60 * (45 + (i * 23 + n * 17) % 56) / 100
+                context.insert(Entry(date: date, difficulty: p.difficulty, topic: NeetCode.topic(of: p.slug),
+                                     secondsTaken: taken, neetcode: p.slug))
             }
         }
         try? context.save()

@@ -16,6 +16,7 @@
 		A10000000000000000000007 /* Style.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Style.swift */; };
 		A10000000000000000000008 /* NeetCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* NeetCode.swift */; };
 		A1000000000000000000000D /* Demo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* Demo.swift */; };
+		A1000000000000000000000E /* Stats.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Stats.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		A20000000000000000000007 /* Style.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Style.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* NeetCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeetCode.swift; sourceTree = "<group>"; };
 		A2000000000000000000000D /* Demo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Demo.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* Stats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Stats.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000000000000000000009 /* Dialed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dialed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -63,6 +65,7 @@
 				A20000000000000000000007 /* Style.swift */,
 				A2000000000000000000000F /* NeetCode.swift */,
 				A2000000000000000000000D /* Demo.swift */,
+				A2000000000000000000000E /* Stats.swift */,
 				A20000000000000000000008 /* Info.plist */,
 			);
 			path = Dialed;
@@ -148,6 +151,7 @@
 				A10000000000000000000007 /* Style.swift in Sources */,
 				A10000000000000000000008 /* NeetCode.swift in Sources */,
 				A1000000000000000000000D /* Demo.swift in Sources */,
+				A1000000000000000000000E /* Stats.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -195,7 +199,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Dialed/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Dialed;
@@ -204,7 +208,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = local.dialed.Dialed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -217,7 +221,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Dialed/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Dialed;
@@ -226,7 +230,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = local.dialed.Dialed;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

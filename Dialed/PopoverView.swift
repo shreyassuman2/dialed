@@ -36,7 +36,7 @@ private struct MainView: View {
     let onQuickLog: () -> Void
     let onEditGoals: () -> Void
 
-    private enum Tab: String { case solve, week, neetcode }
+    private enum Tab: String { case solve, week, neetcode, stats }
     @AppStorage("tab") private var tab: Tab = .solve
     @State private var editing = false
     @State private var confirmQuit = false
@@ -62,6 +62,8 @@ private struct MainView: View {
                 historySection
             case .neetcode:
                 NeetCodeView(model: model) { tab = .solve }
+            case .stats:
+                StatsView(model: model)
             }
             footer
         }
@@ -73,6 +75,7 @@ private struct MainView: View {
                 tabButton(.solve, "solve")
                 tabButton(.week, "week")
                 tabButton(.neetcode, "neetcode")
+                tabButton(.stats, "stats")
             }
             Divider()
         }
