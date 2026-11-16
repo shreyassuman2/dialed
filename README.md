@@ -1,19 +1,14 @@
 # Dialed
 
-A macOS menu bar app for LeetCode interview prep.
+A macOS menu bar app for LeetCode prep: a problem timer, weekly targets, and a NeetCode 150 / Blind 75 checklist.
 
-- Counts down to a ready-by date and turns your problem goal into a weekly target.
-- Logs a problem in a few seconds: difficulty, topic, and an optional interview-length timer (easy 20 / medium 35 / hard 45 min).
-- NeetCode 150 checklist by category, with a "next" problem, LeetCode links and per-problem timers.
-- Last-8-weeks history and a Monday summary notification.
+<img src="docs/demo.gif" width="400" alt="Dialed demo">
 
 ## Build
 
-Requires macOS 14+ and Xcode.
-
 ```sh
-xcodebuild -project Dialed.xcodeproj -scheme Dialed -configuration Debug -derivedDataPath build build
-open build/Build/Products/Debug/Dialed.app
+xcodebuild -project Dialed.xcodeproj -scheme Dialed -configuration Release -derivedDataPath build build
+cp -R build/Build/Products/Release/Dialed.app /Applications/
 ```
 
-Data is stored locally in `~/Library/Application Support/Dialed/`.
+Requires macOS 14+.

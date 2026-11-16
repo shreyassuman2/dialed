@@ -1,8 +1,14 @@
+import AppKit
 import SwiftUI
 
 enum Style {
     /// The one accent colour. Everything else is primary or secondary text.
-    static let accent = Color(red: 1.0, green: 0.62, blue: 0.04)
+    /// Blue, darker in light mode and brighter in dark mode so it reads on both.
+    static let accent = Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0.40, green: 0.68, blue: 1.00, alpha: 1)
+            : NSColor(red: 0.00, green: 0.38, blue: 0.90, alpha: 1)
+    })
     static let font = Font.system(size: 12, design: .monospaced)
     static let small = Font.system(size: 11, design: .monospaced)
     static let big = Font.system(size: 44, weight: .bold, design: .monospaced)
@@ -27,6 +33,7 @@ struct TermButtonStyle: ButtonStyle {
             HStack(spacing: 0) {
                 Text("[ ").foregroundStyle(.secondary)
                 configuration.label
+                    .fontWeight(selected ? .bold : .regular)
                 Text(" ]").foregroundStyle(.secondary)
             }
             .foregroundStyle(selected || hovering ? Style.accent : Color.primary)

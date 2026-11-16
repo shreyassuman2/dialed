@@ -23,9 +23,13 @@ final class AppModel {
     private(set) var now = Date()
     private(set) var active: ActiveTimer?
     private(set) var pending: PendingLog?
+    var ncList: NCList {
+        didSet { defaults.set(ncList.rawValue, forKey: Keys.ncList) }
+    }
 
     init(context: ModelContext) {
         self.context = context
+        ncList = NCList(rawValue: UserDefaults.standard.string(forKey: Keys.ncList) ?? "") ?? .neetcode150
         active = load(ActiveTimer.self, key: Keys.active)
         pending = load(PendingLog.self, key: Keys.pending)
         refresh()
@@ -49,14 +53,14 @@ final class AppModel {
 
     func done(weekStarting start: Date) -> Int {
         let end = Pace.addWeeks(1, to: start)
-        return entries.filter { $0.date >= start && $0.date < end }.count
+        return entries.filter { !$0.prior && $0.date >= start && $0.date < end }.count
     }
 
     var doneThisWeek: Int { done(weekStarting: weekStart) }
 
     /// Everything counted toward the goal before `date`, including the starting number.
     func doneBefore(_ date: Date) -> Int {
-        entries.filter { $0.date < date }.count + (goals?.startingSolved ?? 0)
+        entries.filter { $0.prior || $0.date < date }.count + (goals?.startingSolved ?? 0)
     }
 
     var totalDone: Int { doneBefore(.distantFuture) }
@@ -199,18 +203,28 @@ final class AppModel {
 
     var solvedNeetCode: Set<String> { Set(entries.compactMap(\.neetcode)) }
 
-    /// First unsolved problem in NeetCode order.
-    var nextNeetCode: NCProblem? {
+    var solvedInList: Int {
         let solved = solvedNeetCode
-        return NeetCode.all.first { !solved.contains($0.slug) }
+        return ncList.problems.filter { solved.contains($0.slug) }.count
     }
 
-    /// Ticks a problem off (logging it like any other problem), or unticks it.
-    func toggleNeetCode(_ problem: NCProblem) {
+    /// First unsolved problem of the chosen list, in NeetCode order.
+    var nextNeetCode: NCProblem? {
+        let solved = solvedNeetCode
+        return ncList.problems.first { !solved.contains($0.slug) }
+    }
+
+    /// Ticks a problem off, or unticks it. `prior` marks it as solved before tracking,
+    /// so it does not count toward this week.
+    func toggleNeetCode(_ problem: NCProblem, prior: Bool) {
         let matching = entries.filter { $0.neetcode == problem.slug }
         if matching.isEmpty {
-            logProblem(difficulty: problem.difficulty, topic: NeetCode.topic(of: problem.slug),
-                       secondsTaken: nil, neetcode: problem.slug)
+            let entry = Entry(date: Date(), difficulty: problem.difficulty,
+                              topic: NeetCode.topic(of: problem.slug), neetcode: problem.slug)
+            entry.prior = prior
+            context.insert(entry)
+            try? context.save()
+            refresh()
         } else {
             matching.forEach(context.delete)
             try? context.save()
@@ -317,6 +331,7 @@ final class AppModel {
         static let active = "activeTimer"
         static let pending = "pendingLog"
         static let lastTopic = "lastTopic"
+        static let ncList = "neetcodeList"
     }
 
     private func load<T: Decodable>(_ type: T.Type, key: String) -> T? {

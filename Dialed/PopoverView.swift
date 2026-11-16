@@ -4,7 +4,7 @@ import SwiftUI
 struct PopoverView: View {
     let model: AppModel
 
-    private enum Screen { case main, quickLog, setup, neetcode }
+    private enum Screen { case main, quickLog, setup }
     @State private var screen: Screen = .main
 
     var body: some View {
@@ -15,11 +15,8 @@ struct PopoverView: View {
                 LogView(model: model, pending: pending) { screen = .main }
             } else if screen == .quickLog {
                 LogView(model: model, pending: nil) { screen = .main }
-            } else if screen == .neetcode {
-                NeetCodeView(model: model) { screen = .main }
             } else {
-                MainView(model: model, onQuickLog: { screen = .quickLog }, onEditGoals: { screen = .setup },
-                         onNeetCode: { screen = .neetcode })
+                MainView(model: model, onQuickLog: { screen = .quickLog }, onEditGoals: { screen = .setup })
             }
         }
         .font(Style.font)
@@ -38,8 +35,9 @@ private struct MainView: View {
     let model: AppModel
     let onQuickLog: () -> Void
     let onEditGoals: () -> Void
-    let onNeetCode: () -> Void
 
+    private enum Tab: String { case solve, week, neetcode }
+    @AppStorage("tab") private var tab: Tab = .solve
     @State private var editing = false
 
     private static let dateFormat: DateFormatter = {
@@ -51,27 +49,63 @@ private struct MainView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            header
-            prompts
-            weekSection
-            neetcodeSection
-            timerSection
-            logSection
+            tabBar
+            switch tab {
+            case .solve:
+                timerSection
+                logSection
+            case .week:
+                header
+                prompts
+                weekSection
+                historySection
+            case .neetcode:
+                NeetCodeView(model: model) { tab = .solve }
+            }
             footer
         }
     }
 
+    private var tabBar: some View {
+        HStack(spacing: 8) {
+            tabButton(.solve, "solve")
+            tabButton(.week, "week")
+            tabButton(.neetcode, "neetcode")
+        }
+    }
+
+    private func tabButton(_ t: Tab, _ label: String) -> some View {
+        Button(label) { tab = t }
+            .buttonStyle(TermButtonStyle(selected: tab == t))
+            .monospacedDigit()
+    }
+
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text("\(model.daysLeft)d")
-                .font(Style.big)
-                .foregroundStyle(model.datePassed ? Color.secondary : Color.primary)
-            Spacer()
-            if let goals = model.goals {
-                Text("ready by \(Self.dateFormat.string(from: goals.readyBy))")
+        HStack(alignment: .bottom) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("\(model.daysLeft)")
+                    .font(Style.big)
+                    .foregroundStyle(model.datePassed ? Color.secondary : Color.primary)
+                Text(model.daysLeft == 1 ? "DAY LEFT" : "DAYS LEFT")
+                    .font(Style.small.weight(.semibold))
+                    .tracking(1.5)
                     .foregroundStyle(.secondary)
             }
+            Spacer()
+            if let goals = model.goals {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("READY BY")
+                        .font(Style.small.weight(.semibold))
+                        .tracking(1.5)
+                        .foregroundStyle(.secondary)
+                    Text(Self.dateFormat.string(from: goals.readyBy))
+                }
+                .padding(.bottom, 8)
+            }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(Color.secondary.opacity(0.35), lineWidth: 1))
     }
 
     @ViewBuilder
@@ -127,41 +161,8 @@ private struct MainView: View {
         }
     }
 
-    private var neetcodeSection: some View {
-        let solved = model.solvedNeetCode.count
-        let total = NeetCode.all.count
-        return VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 0) {
-                Text("neetcode 150").foregroundStyle(.secondary)
-                Spacer()
-                Button("open list") { onNeetCode() }.buttonStyle(LinkButtonStyle())
-            }
-            HStack(spacing: 0) {
-                Text(Pace.bar(done: solved, target: total, width: 20))
-                    .foregroundStyle(solved >= total ? Style.accent : Color.primary)
-                Text("  \(solved)/\(total)")
-            }
-            if let next = model.nextNeetCode {
-                HStack(spacing: 6) {
-                    Text("next").foregroundStyle(.secondary)
-                    Button(next.name) { NSWorkspace.shared.open(next.url) }
-                        .buttonStyle(LinkButtonStyle())
-                        .help("Open on LeetCode")
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                    if model.active == nil {
-                        Button("▶") { model.startTimer(next.difficulty, neetcode: next.slug) }
-                            .buttonStyle(LinkButtonStyle())
-                            .help("Start a \(next.difficulty.minutes)-minute timer for this problem")
-                    }
-                }
-            }
-        }
-    }
-
     private var timerSection: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("timer").foregroundStyle(.secondary)
             if let seconds = model.remainingSeconds, let active = model.active {
                 HStack(alignment: .firstTextBaseline, spacing: 10) {
                     Text(Pace.clock(seconds))
@@ -186,22 +187,25 @@ private struct MainView: View {
 
     private var logSection: some View {
         VStack(alignment: .leading, spacing: 5) {
-            Text("log").foregroundStyle(.secondary)
             Button("+ problem") { onQuickLog() }
                 .buttonStyle(TermButtonStyle())
         }
     }
 
+    private var historySection: some View {
+        HStack(spacing: 0) {
+            Text("last 8 weeks  ").foregroundStyle(.secondary)
+            ForEach(model.history, id: \.start) { week in
+                Text(Pace.spark(done: week.done, target: week.target))
+                    .foregroundStyle(week.target > 0 && week.done >= week.target ? Style.accent : Color.primary)
+                    .help("Week of \(Self.dateFormat.string(from: week.start)): \(week.done)/\(week.target) problems")
+            }
+        }
+    }
+
     private var footer: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 0) {
-                Text("last 8 weeks  ").foregroundStyle(.secondary)
-                ForEach(model.history, id: \.start) { week in
-                    Text(Pace.spark(done: week.done, target: week.target))
-                        .foregroundStyle(week.target > 0 && week.done >= week.target ? Style.accent : Color.primary)
-                        .help("Week of \(Self.dateFormat.string(from: week.start)): \(week.done)/\(week.target) problems")
-                }
-            }
+            Divider()
             HStack(spacing: 0) {
                 Button("undo") { model.undo() }
                     .buttonStyle(LinkButtonStyle())
@@ -378,24 +382,60 @@ private struct SetupView: View {
 
 private struct NeetCodeView: View {
     let model: AppModel
-    let onDone: () -> Void
+    /// Called after a timer is started from the list.
+    let onStartTimer: () -> Void
 
     @State private var open: Set<String> = []
+    /// Ticks made while true are "solved before": they skip this week's count.
+    @State private var prior = false
 
     var body: some View {
         let solved = model.solvedNeetCode
+        let priorSolved = Set(model.entries.filter(\.prior).compactMap(\.neetcode))
         VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                ForEach(NCList.allCases) { list in
+                    Button(list.title) { model.ncList = list }
+                        .buttonStyle(TermButtonStyle(selected: model.ncList == list))
+                }
+            }
             HStack(spacing: 0) {
-                Text("neetcode 150")
-                Spacer()
-                Text("\(solved.count)/\(NeetCode.all.count)").foregroundStyle(.secondary)
+                Text(Pace.bar(done: model.solvedInList, target: model.ncList.problems.count, width: 20))
+                    .foregroundStyle(model.nextNeetCode == nil ? Style.accent : Color.primary)
+                Text("  \(model.solvedInList)/\(model.ncList.problems.count)")
+            }
+            if let next = model.nextNeetCode {
+                HStack(spacing: 6) {
+                    Text("next").foregroundStyle(.secondary)
+                    Button(next.name) { NSWorkspace.shared.open(next.url) }
+                        .buttonStyle(LinkButtonStyle())
+                        .help("Open on LeetCode")
+                        .lineLimit(1)
+                    Spacer(minLength: 0)
+                    if model.active == nil {
+                        Button("▶") { model.startTimer(next.difficulty, neetcode: next.slug); onStartTimer() }
+                            .buttonStyle(LinkButtonStyle())
+                            .help("Start a \(next.difficulty.minutes)-minute timer")
+                    }
+                }
+            }
+            HStack(spacing: 8) {
+                Text("ticks are").foregroundStyle(.secondary)
+                Button("new") { prior = false }
+                    .buttonStyle(TermButtonStyle(selected: !prior))
+                    .help("Counts toward this week")
+                Button("solved before") { prior = true }
+                    .buttonStyle(TermButtonStyle(selected: prior))
+                    .help("Counts toward your total, not this week")
             }
             ScrollView {
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(NeetCode.sections) { section in
+                    ForEach(model.ncList.sections) { section in
                         sectionRow(section, solved: solved)
                         if open.contains(section.name) {
-                            ForEach(section.problems) { problemRow($0, solved: solved.contains($0.slug)) }
+                            ForEach(section.problems) {
+                                problemRow($0, solved: solved.contains($0.slug), before: priorSolved.contains($0.slug))
+                            }
                                 .padding(.leading, 14)
                                 .padding(.bottom, 2)
                         }
@@ -403,16 +443,12 @@ private struct NeetCodeView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 420)
-            HStack(spacing: 0) {
-                Text("☐ tick = log · name = open · ▶ = timer")
-                    .font(Style.small).foregroundStyle(.secondary)
-                Spacer()
-                Button("back") { onDone() }
-                    .buttonStyle(LinkButtonStyle())
-                    .keyboardShortcut(.cancelAction)
-            }
+            .frame(height: 300)
+            Text("☐ tick · ☒ solved before · ▶ timer")
+                .font(Style.small).foregroundStyle(.secondary)
         }
+        // Start in "solved before" mode while nothing is ticked yet: that's the catch-up pass.
+        .onAppear { prior = model.solvedNeetCode.isEmpty }
     }
 
     private func sectionRow(_ section: NCSection, solved: Set<String>) -> some View {
@@ -434,12 +470,11 @@ private struct NeetCodeView: View {
         .buttonStyle(.plain)
     }
 
-    private func problemRow(_ problem: NCProblem, solved: Bool) -> some View {
+    private func problemRow(_ problem: NCProblem, solved: Bool, before: Bool) -> some View {
         HStack(spacing: 6) {
-            Button(solved ? "☑" : "☐") { model.toggleNeetCode(problem) }
+            Button(before ? "☒" : solved ? "☑" : "☐") { model.toggleNeetCode(problem, prior: prior) }
                 .buttonStyle(LinkButtonStyle())
-                .foregroundStyle(solved ? Style.accent : Color.secondary)
-                .help(solved ? "Untick (removes the logged entry)" : "Mark solved (logs a problem)")
+                .help(solved ? "Untick" : prior ? "Mark solved before (not this week)" : "Mark solved (counts this week)")
             Button(problem.name) { NSWorkspace.shared.open(problem.url) }
                 .buttonStyle(LinkButtonStyle())
                 .lineLimit(1)
@@ -448,7 +483,7 @@ private struct NeetCodeView: View {
             Text(String(problem.difficulty.rawValue.prefix(1)).uppercased())
                 .foregroundStyle(problem.difficulty == .hard ? Style.accent : Color.secondary)
             if model.active == nil && !solved {
-                Button("▶") { model.startTimer(problem.difficulty, neetcode: problem.slug); onDone() }
+                Button("▶") { model.startTimer(problem.difficulty, neetcode: problem.slug); onStartTimer() }
                     .buttonStyle(LinkButtonStyle())
                     .help("Start a \(problem.difficulty.minutes)-minute timer")
             }

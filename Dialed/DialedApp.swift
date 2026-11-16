@@ -9,10 +9,14 @@ struct DialedApp: App {
 
     init() {
         // An explicit store path: an unsandboxed app would otherwise share "default.store".
-        let folder = URL.applicationSupportDirectory.appending(path: "Dialed", directoryHint: .isDirectory)
+        // DIALED_DATA_DIR points at another data folder (used for demo recordings).
+        let env = ProcessInfo.processInfo.environment
+        let override = env["DIALED_DATA_DIR"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+        let folder = override ?? URL.applicationSupportDirectory.appending(path: "Dialed", directoryHint: .isDirectory)
         // The app used to be called Lock In. Move its data over the first time.
         let oldFolder = URL.applicationSupportDirectory.appending(path: "LockIn", directoryHint: .isDirectory)
-        if !FileManager.default.fileExists(atPath: folder.path), FileManager.default.fileExists(atPath: oldFolder.path) {
+        if override == nil, !FileManager.default.fileExists(atPath: folder.path),
+           FileManager.default.fileExists(atPath: oldFolder.path) {
             try? FileManager.default.moveItem(at: oldFolder, to: folder)
             for suffix in ["", "-shm", "-wal"] {
                 try? FileManager.default.moveItem(at: folder.appending(path: "LockIn.store" + suffix),
@@ -26,6 +30,7 @@ struct DialedApp: App {
         } catch {
             fatalError("Could not open the data store: \(error)")
         }
+        if override != nil, env["DIALED_DEMO"] == "1" { Demo.seedIfEmpty(container.mainContext) }
         _model = State(initialValue: AppModel(context: container.mainContext))
 
         Notifier.setup()

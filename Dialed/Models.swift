@@ -56,6 +56,9 @@ final class Entry {
     var secondsTaken: Int?
     /// LeetCode slug when this entry ticks off a NeetCode 150 problem.
     var neetcode: String?
+    /// Solved before the user started tracking: counts toward totals and NeetCode
+    /// progress, but not toward any week.
+    var prior: Bool = false
 
     init(date: Date, difficulty: Difficulty, topic: String, secondsTaken: Int? = nil, neetcode: String? = nil) {
         self.date = date
