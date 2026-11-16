@@ -39,6 +39,7 @@ private struct MainView: View {
     private enum Tab: String { case solve, week, neetcode }
     @AppStorage("tab") private var tab: Tab = .solve
     @State private var editing = false
+    @State private var confirmQuit = false
 
     private static let dateFormat: DateFormatter = {
         let f = DateFormatter()
@@ -67,17 +68,19 @@ private struct MainView: View {
     }
 
     private var tabBar: some View {
-        HStack(spacing: 8) {
-            tabButton(.solve, "solve")
-            tabButton(.week, "week")
-            tabButton(.neetcode, "neetcode")
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 18) {
+                tabButton(.solve, "solve")
+                tabButton(.week, "week")
+                tabButton(.neetcode, "neetcode")
+            }
+            Divider()
         }
     }
 
     private func tabButton(_ t: Tab, _ label: String) -> some View {
         Button(label) { tab = t }
-            .buttonStyle(TermButtonStyle(selected: tab == t))
-            .monospacedDigit()
+            .buttonStyle(TabButtonStyle(selected: tab == t))
     }
 
     private var header: some View {
@@ -177,7 +180,7 @@ private struct MainView: View {
             } else {
                 HStack(spacing: 8) {
                     ForEach(Difficulty.allCases) { d in
-                        Button("\(d.rawValue) \(d.minutes)") { model.startTimer(d) }
+                        Button("▶ \(d.rawValue) \(d.minutes)m") { model.startTimer(d) }
                             .buttonStyle(TermButtonStyle())
                     }
                 }
@@ -214,8 +217,27 @@ private struct MainView: View {
                 Text(" · ").foregroundStyle(.secondary)
                 Button("edit goals") { onEditGoals() }.buttonStyle(LinkButtonStyle())
                 Spacer()
-                Button("quit") { NSApplication.shared.terminate(nil) }.buttonStyle(LinkButtonStyle())
+                quitButton
             }
+        }
+    }
+
+    /// Two-step quit so a stray click doesn't close the app. Resets after 3 seconds.
+    @ViewBuilder
+    private var quitButton: some View {
+        if confirmQuit {
+            HStack(spacing: 0) {
+                Text("quit? ").foregroundStyle(.secondary)
+                Button("yes") { NSApplication.shared.terminate(nil) }.buttonStyle(TermButtonStyle())
+                Text(" · ").foregroundStyle(.secondary)
+                Button("no") { confirmQuit = false }.buttonStyle(LinkButtonStyle())
+            }
+            .task {
+                try? await Task.sleep(for: .seconds(3))
+                confirmQuit = false
+            }
+        } else {
+            Button("quit") { confirmQuit = true }.buttonStyle(LinkButtonStyle())
         }
     }
 }

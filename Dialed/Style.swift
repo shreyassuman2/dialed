@@ -44,6 +44,34 @@ struct TermButtonStyle: ButtonStyle {
     }
 }
 
+/// A tab: plain text, the selected one bold and underlined in the accent colour.
+struct TabButtonStyle: ButtonStyle {
+    var selected = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        TabBody(configuration: configuration, selected: selected)
+    }
+
+    private struct TabBody: View {
+        let configuration: Configuration
+        let selected: Bool
+        @State private var hovering = false
+
+        var body: some View {
+            configuration.label
+                .fontWeight(selected ? .bold : .regular)
+                .foregroundStyle(selected ? Style.accent : hovering ? Color.primary : Color.secondary)
+                .padding(.bottom, 6)
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(selected ? Style.accent : Color.clear).frame(height: 2)
+                }
+                .opacity(configuration.isPressed ? 0.5 : 1)
+                .contentShape(Rectangle())
+                .onHover { hovering = $0 }
+        }
+    }
+}
+
 /// A plain text link: `undo`.
 struct LinkButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
