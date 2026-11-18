@@ -10,3 +10,13 @@ cp -R build/Build/Products/Release/Dialed.app /Applications/
 ```
 
 Requires macOS 14+.
+
+## Windows
+
+The `windows/` folder holds a Windows version: a system tray app (C#, WPF) with the same timer, weekly targets, NeetCode checklist and stats.
+
+```sh
+dotnet publish windows -c Release -o windows/bin/publish
+```
+
+Run `windows/bin/publish/Dialed.exe`. Requires Windows 10 or 11 and the .NET 10 SDK to build. Data is saved in `%APPDATA%\Dialed\data.json`.
