@@ -13,39 +13,15 @@ public static class Theme
     public static readonly FontFamily Mono = new("Consolas, Cascadia Mono, Courier New");
     public const double Size = 13, Small = 12, Big = 44, Width = 420;
 
-    public static Brush Bg { get; private set; } = Brushes.White;
-    public static Brush Primary { get; private set; } = Brushes.Black;
-    public static Brush Secondary { get; private set; } = Brushes.Gray;
-    public static Brush Accent { get; private set; } = Brushes.Blue;
-    public static Brush Line { get; private set; } = Brushes.LightGray;
+    // The popup is always light, whatever the Windows app theme is.
+    public static readonly Brush Bg = Solid(0xF7, 0xF7, 0xF7);
+    public static readonly Brush Primary = Solid(0x1A, 0x1A, 0x1A);
+    public static readonly Brush Secondary = Solid(0x6E, 0x6E, 0x6E);
+    public static readonly Brush Accent = Solid(0x00, 0x61, 0xE6);
+    public static readonly Brush Line = Solid(0xC8, 0xC8, 0xC8);
 
-    /// True when apps use the dark theme.
-    public static bool AppsDark => ReadFlag("AppsUseLightTheme") == 0;
-    /// True when the taskbar is dark.
+    /// True when the taskbar is dark (the tray icon still follows it so it stays readable).
     public static bool TaskbarDark => ReadFlag("SystemUsesLightTheme") == 0;
-
-    static Theme() => Load();
-
-    /// Re-reads the Windows light/dark setting.
-    public static void Load()
-    {
-        if (AppsDark)
-        {
-            Bg = Solid(0x1E, 0x1E, 0x1E);
-            Primary = Solid(0xE6, 0xE6, 0xE6);
-            Secondary = Solid(0x8C, 0x8C, 0x8C);
-            Accent = Solid(0x66, 0xAD, 0xFF);
-            Line = Solid(0x44, 0x44, 0x44);
-        }
-        else
-        {
-            Bg = Solid(0xF7, 0xF7, 0xF7);
-            Primary = Solid(0x1A, 0x1A, 0x1A);
-            Secondary = Solid(0x6E, 0x6E, 0x6E);
-            Accent = Solid(0x00, 0x61, 0xE6);
-            Line = Solid(0xC8, 0xC8, 0xC8);
-        }
-    }
 
     private static SolidColorBrush Solid(byte r, byte g, byte b)
     {

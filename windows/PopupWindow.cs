@@ -83,7 +83,6 @@ public sealed class PopupWindow : Window
 
     public void ShowPopup()
     {
-        Theme.Load();
         editing = false;
         confirmQuit = false;
         if (model.S.Tab == "neetcode") prior = model.SolvedNeetCode.Count == 0;
